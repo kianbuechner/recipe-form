@@ -176,7 +176,8 @@
             const title = document.getElementById('title').value;
             const author = document.getElementById('author').value;
             const portions = document.getElementById('portions').value;
-            const totalTime = document.getElementById('totalTime').value;
+            const workingTime = document.getElementById('workingTime').value;
+            const restingTime = document.getElementById('restingTime').value;
             const cookingTime = document.getElementById('cookingTime').value;
             const difficulty = selectedDifficulty;
             const utensils = JSON.stringify(document.getElementById('utensils').value.split(',').map(item => item.trim()));
@@ -225,7 +226,7 @@
             }
 
             const sqlCommands = `
-INSERT INTO recipes (title, portions, difficulty, utensils, imageUrl, category, totalTime, cookingTime, author) VALUES ('${title}', ${portions}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}', ${totalTime}, ${cookingTime}, '${author}');
+INSERT INTO recipes (title, portions, difficulty, utensils, imageUrl, category, workingTime, cookingTime, author, restingTime) VALUES ('${title}', ${portions}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}', ${workingTime}, ${cookingTime}, '${author}, ${workingTime}');
 SET @recipe_id = (SELECT id FROM recipes WHERE title='${title}');
 
 INSERT INTO ingredients (name, diet) VALUES ${ingredientInserts.join(', ')}
@@ -365,11 +366,14 @@ ${stepInserts.join(', ')};`;
             <label for="portions">Portionen:</label>
             <input type="number" id="portions" required>
             <div>
-                <label for="totalTime">Gesamte Zeit (in Minuten):</label>
-                <input type="number" id="totalTime" required>
+                <label for="workingTime">Arbeitszeit (in Minuten):</label>
+                <input type="number" id="workingTime" required>
                 <br>
                 <label for="cookingTime">Kochzeit (in Minuten):</label>
                 <input type="number" id="cookingTime" required>
+                <br>
+                <label for="restingTime">Ruhezeit (in Minuten):</label>
+                <input type="number" id="restingTime" required>
                 <div>
                     <label>Schwierigkeitsgrad:</label>
                     <div class="difficulty-container">
