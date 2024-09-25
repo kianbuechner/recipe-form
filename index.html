@@ -204,8 +204,8 @@
                 const dietJSON = JSON.stringify(diet);
                 const unit = row.querySelector('.ingredient-unit').value;
                 const quantity = row.querySelector('.ingredient-quantity').value;
-                ingredientInserts.push(`('${name}', '${dietJSON}', '${unit}')`);
-                recipeIngredientValues.push(`(@recipe_id, (SELECT id FROM ingredients WHERE name='${name}' AND unit='${unit}'), ${quantity})`);
+                ingredientInserts.push(`('${name}', '${dietJSON}')`);
+                recipeIngredientValues.push(`(@recipe_id, (SELECT id FROM ingredients WHERE name='${name}'), ${quantity}, '${unit}')`);
             }
 
             let stepInserts = [];
@@ -227,10 +227,10 @@
 INSERT INTO recipes (title, portions, difficulty, utensils, imageUrl, category, totalTime, cookingTime) VALUES ('${title}', ${portions}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}', ${totalTime}, ${cookingTime});
 SET @recipe_id = (SELECT id FROM recipes WHERE title='${title}');
 
-INSERT INTO ingredients (name, diet, unit) VALUES ${ingredientInserts.join(', ')} 
-ON DUPLICATE KEY UPDATE name = VALUES(name), diet = VALUES(diet), unit = VALUES(unit);
+INSERT INTO ingredients (name, diet) VALUES ${ingredientInserts.join(', ')}
+ON DUPLICATE KEY UPDATE name = VALUES(name), diet = VALUES(diet);
 
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES 
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES 
 ${recipeIngredientValues.join(', ')};
 
 INSERT INTO steps (recipe_id, step_number, description, ingredients) VALUES 
