@@ -193,7 +193,6 @@
     </style>
     <script>
         let selectedDifficulty = '';
-        let baking = false;
         let stepCounter = 0;
 
         function setDifficulty(level) {
@@ -203,10 +202,6 @@
                 button.classList.remove('selected');
             });
             document.getElementById(level).classList.add('selected');
-        }
-
-        function toggleBaking() {
-            baking = !baking;
         }
 
         function generateSQL() {
@@ -261,7 +256,7 @@
             }
 
             const sqlCommands = `
-INSERT INTO recipes (title, portions, duration, difficulty, utensils, imageUrl, baking, category) VALUES ('${title}', ${portions}, ${duration}, '${difficulty}', '${utensils}', '${imageUrl}', ${baking}, '${categoryJSON}');
+INSERT INTO recipes (title, portions, duration, difficulty, utensils, imageUrl, category) VALUES ('${title}', ${portions}, ${duration}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}');
 SET @recipe_id = (SELECT id FROM recipes WHERE title='${title}');
 
 INSERT INTO ingredients (name, diet, unit) VALUES ${ingredientInserts.join(', ')} 
@@ -416,15 +411,6 @@ ${stepInserts.join(', ')};`;
                     <div>
                         <label for="imageUrl">Bild URL:</label>
                         <input type="text" id="imageUrl" required>
-
-                        <div class="cooking-method">
-                            <input type="radio" id="cooking" name="baking" value="false" checked>
-                            <label for="cooking">Kochen</label>
-
-                            <input type="radio" id="baking" name="baking" value="true">
-                            <label for="baking">Backen</label>
-                        </div>
-
 
                         <div class="checkbox-container">
                             <label><input type="checkbox" class="category-checkbox" value="Vorspeise"> Vorspeise</label>
