@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezept eintragen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #E6EFEE;
+            color: #456360;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input,
+        select {
+            width: 300px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #98CBC6;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        button {
+            width: 100px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #98CBC6;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #456360;
+            transform: scale(1.05);
+        }
+
+        .difficulty-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .difficulty-button {
+            margin-right: 5px;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .difficulty-button:last-child {
+            margin-right: 0;
+        }
+
+        .selected {
+            background-color: #456360 !important;
+        }
+
+        .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            /* Links am Rand ausrichten */
+            padding-left: 0;
+            /* Kein Padding auf der linken Seite */
+            margin-left: 0;
+            /* Kein Margin auf der linken Seite */
+        }
+
+        .checkbox-container label {
+            display: flex;
+            align-items: center;
+            background-color: #f1f1f1;
+            padding: 5px 10px;
+            border: 1px solid #98CBC6;
+            /* Border hinzufügen */
+            border-radius: 5px;
+            margin-left: 0;
+            /* Kein zusätzlicher Abstand links */
+        }
+
+
+        .checkbox-container input {
+            margin-right: 8px;
+            /* Abstand zwischen Checkbox und Text */
+        }
+
+        .ingredient,
+        .step {
+            margin-bottom: 20px;
+        }
+
+        .sql-output {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+
+        .cooking-method {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .cooking-method input[type="radio"] {
+            display: none;
+            /* Verstecke die eigentlichen Radio-Buttons */
+        }
+
+        .cooking-method label {
+            padding: 10px 15px;
+            background-color: #98CBC6;
+            border: 1px solid #456360;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .cooking-method input[type="radio"]:checked+label {
+            background-color: #456360;
+            /* Markiere den ausgewählten Button */
+            color: white;
+            /* Textfarbe des ausgewählten Buttons */
+        }
+
+
+        .cooking-method input[type="radio"] {
+            display: none;
+            /* Verstecke die eigentlichen Radio-Buttons */
+        }
+
+        .ingredient-fields {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            /* Border für die Zutatenfelder */
+            padding: 10px;
+            margin-top: 5px;
+        }
+    </style>
+    <script>
+        let selectedDifficulty = '';
+        let baking = false;
+
+        function setDifficulty(level) {
+            selectedDifficulty = level;
+            const buttons = document.querySelectorAll('.difficulty-button');
+            buttons.forEach(button => {
+                button.classList.remove('selected');
+            });
+            document.getElementById(level).classList.add('selected');
+        }
+
+        function toggleBaking() {
+            baking = !baking;
+        }
+
+        function generateSQL() {
+            console.log("SQL Generation gestartet"); // Debugging
+            const title = document.getElementById('title').value;
+            const portions = document.getElementById('portions').value;
+            const duration = document.getElementById('duration').value;
+            const difficulty = selectedDifficulty;
+            const utensils = JSON.stringify(document.getElementById('utensils').value.split(',').map(item => item.trim()));
+            const imageUrl = document.getElementById('imageUrl').value;
+            const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+            let categories = [];
+            categoryCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    categories.push(checkbox.value);
+                }
+            });
+            const categoryJSON = JSON.stringify(categories);
+
+            let ingredientInserts = [];
+            let recipeIngredientValues = [];
+            const ingredientRows = document.getElementsByClassName('ingredient');
+            for (let row of ingredientRows) {
+                const name = row.querySelector('.ingredient-name').value;
+                const dietCheckboxes = row.querySelectorAll('.ingredient-diet-checkbox');
+                let diet = [];
+                dietCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        diet.push(checkbox.value);
+                    }
+                });
+                const dietJSON = JSON.stringify(diet);
+                const unit = row.querySelector('.ingredient-unit').value;
+                const quantity = row.querySelector('.ingredient-quantity').value;
+                ingredientInserts.push(`('${name}', '${dietJSON}', '${unit}')`);
+                recipeIngredientValues.push(`(@recipe_id, (SELECT id FROM ingredients WHERE name='${name}' AND unit='${unit}'), ${quantity})`);
+            }
+
+            let stepInserts = [];
+            const stepRows = document.getElementsByClassName('step');
+            for (let sRow of stepRows) {
+                const description = sRow.querySelector('.step-description').value;
+                const ingredientRow = document.getElementsByClassName('ingredient-fields');
+                let ingredientsInserts = [];
+                for (let iRow of ingredientRow){
+                    const ingredientName = iRow.querySelector('.ingredient-name').value;
+                    const ingredientsAmount = iRow.querySelector('.ingredient-amount').value;
+                    ingredientsInserts.push(`{'name':'${ingredientName}', 'amount':'${ingredientsAmount}'}`);
+                }
+                const ingredientsInsertsJSON = JSON.stringify(ingredientsInserts);
+                stepInserts.push(`(@recipe_id, ${stepInserts.length + 1}, '${description}', '${ingredientsInsertsJSON}')`);
+            }
+
+            const sqlCommands = `
+INSERT INTO recipes (title, portions, duration, difficulty, utensils, imageUrl, baking, category) VALUES ('${title}', ${portions}, ${duration}, '${difficulty}', '${utensils}', '${imageUrl}', ${baking}, '${categoryJSON}');
+SET @recipe_id = (SELECT id FROM recipes WHERE title='${title}');
+
+INSERT INTO ingredients (name, diet, unit) VALUES ${ingredientInserts.join(', ')} 
+ON DUPLICATE KEY UPDATE name = VALUES(name), diet = VALUES(diet), unit = VALUES(unit);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES 
+${recipeIngredientValues.join(', ')};
+
+INSERT INTO steps (recipe_id, step_number, description, ingredients) VALUES 
+${stepInserts.join(', ')};`;
+
+            document.getElementById('sqlOutput').innerText = sqlCommands;
+
+            navigator.clipboard.writeText(sqlCommands);
+        }
+
+        function addIngredient() {
+            const ingredientDiv = document.createElement('div');
+            ingredientDiv.classList.add('ingredient');
+            ingredientDiv.innerHTML = `
+                <label>Zutat:</label>
+                <input type="text" class="ingredient-name" placeholder="Name" required>
+                <input type="text" class="ingredient-unit" placeholder="Einheit (z.B. g)" required>
+                <input type="number" class="ingredient-quantity" placeholder="Menge" required>
+                <div class="checkbox-container">
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Vegan" checked> Vegan</label>
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Vegetarisch" checked> Vegetarisch</label>
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Pescetarisch" checked> Pescetarisch</label>
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Laktosefrei" checked> Laktosefrei</label>
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Glutenfrei" checked> Glutenfrei</label>
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Keto" checked> Keto</label>
+                    <label><input type="checkbox" class="ingredient-diet-checkbox" value="Zuckerarm" checked> Zuckerarm</label>
+                </div>
+                <button type="button" class="remove-ingredient">Zutat entfernen</button>
+            `;
+            ingredientDiv.querySelector('.remove-ingredient').addEventListener('click', function() {
+                ingredientDiv.remove();
+            });
+            
+            document.getElementById('ingredientContainer').appendChild(ingredientDiv);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Funktion zum Hinzufügen eines neuen Schrittes
+            document.querySelector('.add-step').addEventListener('click', function () {
+                addNewStep();
+            });
+            // const form = document.querySelector('form');
+            // form.addEventListener('submit', function(event) {
+            //     event.preventDefault();
+            //     generateSQL();
+            // });
+
+            // Füge den Event Listener für den Zutat hinzufügen Button im ersten Schritt hinzu
+            addIngredientListener(document.querySelector('.step'));
+        });
+
+        // Funktion zum Hinzufügen eines neuen Schrittes
+        function addNewStep() {
+            const stepContainer = document.createElement('div');
+            stepContainer.className = 'step';
+
+            stepContainer.innerHTML = `
+        <label for="stepDescription">Schrittbeschreibung:</label>
+        <input type="text" class="step-description" placeholder="Beschreibung" required>
+
+        <h4>Zutaten für diesen Schritt</h4>
+        <div class="ingredient-fields">
+            <input type="text" class="ingredient-name" placeholder="Zutat" required>
+            <input type="text" class="ingredient-amount" placeholder="Menge" required>
+            <button type="button" class="remove-ingredient">Entfernen</button>
+        </div>
+        <button type="button" class="add-ingredient">Zutat hinzufügen</button>
+    `;
+
+            // Füge den neuen Schritt zur Steps-Container hinzu
+            document.querySelector('.steps-container').appendChild(stepContainer);
+
+            // Event Listener für den Zutat hinzufügen Button im neuen Schritt
+            addIngredientListener(stepContainer);
+
+            // Event Listener für das Entfernen des Schrittes
+            const removeStepButton = document.createElement('button');
+            removeStepButton.type = 'button';
+            removeStepButton.textContent = 'Schritt entfernen';
+            removeStepButton.addEventListener('click', function () {
+                stepContainer.remove();
+            });
+            stepContainer.appendChild(removeStepButton);
+        }
+
+        // Funktion zum Hinzufügen des Event Listeners für Zutaten
+        function addIngredientListener(stepContainer) {
+            stepContainer.querySelector('.add-ingredient').addEventListener('click', function () {
+                const ingredientFields = document.createElement('div');
+                ingredientFields.className = 'ingredient-fields';
+                ingredientFields.innerHTML = `
+            <input type="text" class="ingredient-name" placeholder="Zutat" required>
+            <input type="text" class="ingredient-amount" placeholder="Menge" required>
+            <button type="button" class="remove-ingredient">Entfernen</button>
+        `;
+                stepContainer.appendChild(ingredientFields);
+
+                // Event Listener für das Entfernen der Zutat
+                ingredientFields.querySelector('.remove-ingredient').addEventListener('click', function () {
+                    ingredientFields.remove();
+                });
+            });
+        }
+
+    </script>
+</head>
+
+<body>
+    <h1>Rezept eintragen</h1>
+    <form onsubmit="event.preventDefault(); generateSQL();">
+        <label for="title">Titel:</label>
+        <input type="text" id="title" required>
+        <div>
+            <label for="portions">Portionen:</label>
+            <input type="number" id="portions" required>
+            <div>
+                <label for="duration">Dauer (in Minuten):</label>
+                <input type="number" id="duration" required>
+                <div>
+                    <label>Schwierigkeitsgrad:</label>
+                    <div class="difficulty-container">
+                        <button type="button" class="difficulty-button" id="easy"
+                            onclick="setDifficulty('easy')">Einfach</button>
+                        <button type="button" class="difficulty-button" id="medium"
+                            onclick="setDifficulty('medium')">Mittel</button>
+                        <button type="button" class="difficulty-button" id="hard"
+                            onclick="setDifficulty('hard')">Schwierig</button>
+                    </div>
+
+                    <label for="utensils">Utensilien (durch Kommas getrennt):</label>
+                    <input type="text" id="utensils" required>
+                    <div>
+                        <label for="imageUrl">Bild URL:</label>
+                        <input type="text" id="imageUrl" required>
+
+                        <div class="cooking-method">
+                            <input type="radio" id="cooking" name="baking" value="false" checked>
+                            <label for="cooking">Kochen</label>
+
+                            <input type="radio" id="baking" name="baking" value="true">
+                            <label for="baking">Backen</label>
+                        </div>
+
+
+                        <div class="checkbox-container">
+                            <label><input type="checkbox" class="category-checkbox" value="Vorspeise"> Vorspeise</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Hauptspeise">
+                                Hauptspeise</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Dessert"> Dessert</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Frühstück"> Frühstück</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Snacks"> Snacks</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Getränke"> Getränke</label>
+                        </div>
+
+                        <h2>Zutaten</h2>
+                        <div id="ingredientContainer"></div>
+                        <button type="button" onclick="addIngredient()">Zutat hinzufügen</button>
+
+                        <div class="steps-container">
+                            <h3>Schritte</h3>
+                            <div class="step">
+                                <label for="stepDescription">Schrittbeschreibung:</label>
+                                <input type="text" class="step-description" name="stepDescription" required>
+
+                                <h4>Zutaten für diesen Schritt</h4>
+                                <div class="ingredient-fields">
+                                    <input type="text" class="ingredient-name" placeholder="Zutat" required>
+                                    <input type="text" class="ingredient-amount" placeholder="Menge" required>
+                                    <button type="button" class="remove-ingredient">Entfernen</button>
+                                </div>
+                                <button type="button" class="add-ingredient">Zutat hinzufügen</button>
+                            </div>
+                            <button type="button" class="add-step">Schritt hinzufügen</button>
+                        </div>
+
+                        <button id="createSQL" class="create-sql-button" onclick="generateSQL()">SQL erstellen</button>
+                    </form>
+
+    <h2>SQL Ausgabe</h2>
+    <div class="sql-output" id="sqlOutput"></div>
+</body>
+
+</html>
