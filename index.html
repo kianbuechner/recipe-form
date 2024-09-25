@@ -149,39 +149,6 @@
             margin-top: 20px;
         }
 
-        .cooking-method {
-            display: flex;
-            margin-bottom: 10px;
-        }
-
-        .cooking-method input[type="radio"] {
-            display: none;
-            /* Verstecke die eigentlichen Radio-Buttons */
-        }
-
-        .cooking-method label {
-            padding: 10px 15px;
-            background-color: #98CBC6;
-            border: 1px solid #456360;
-            border-radius: 5px;
-            margin-right: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .cooking-method input[type="radio"]:checked+label {
-            background-color: #456360;
-            /* Markiere den ausgewählten Button */
-            color: white;
-            /* Textfarbe des ausgewählten Buttons */
-        }
-
-
-        .cooking-method input[type="radio"] {
-            display: none;
-            /* Verstecke die eigentlichen Radio-Buttons */
-        }
-
         .ingredient-fields {
             display: flex;
             align-items: center;
@@ -208,7 +175,8 @@
             console.log("SQL Generation gestartet"); // Debugging
             const title = document.getElementById('title').value;
             const portions = document.getElementById('portions').value;
-            const duration = document.getElementById('duration').value;
+            const totalTime = document.getElementById('totalTime').value;
+            const cookingTime = document.getElementById('cookingTime').value;
             const difficulty = selectedDifficulty;
             const utensils = JSON.stringify(document.getElementById('utensils').value.split(',').map(item => item.trim()));
             const imageUrl = document.getElementById('imageUrl').value;
@@ -256,7 +224,7 @@
             }
 
             const sqlCommands = `
-INSERT INTO recipes (title, portions, duration, difficulty, utensils, imageUrl, category) VALUES ('${title}', ${portions}, ${duration}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}');
+INSERT INTO recipes (title, portions, difficulty, utensils, imageUrl, category, totalTime, cookingTime) VALUES ('${title}', ${portions}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}', ${totalTime}, ${cookingTime});
 SET @recipe_id = (SELECT id FROM recipes WHERE title='${title}');
 
 INSERT INTO ingredients (name, diet, unit) VALUES ${ingredientInserts.join(', ')} 
@@ -393,8 +361,11 @@ ${stepInserts.join(', ')};`;
             <label for="portions">Portionen:</label>
             <input type="number" id="portions" required>
             <div>
-                <label for="duration">Dauer (in Minuten):</label>
-                <input type="number" id="duration" required>
+                <label for="totalTime">Gesamte Zeit (in Minuten):</label>
+                <input type="number" id="totalTime" required>
+                <br>
+                <label for="cookingTime">Kochzeit (in Minuten):</label>
+                <input type="number" id="cookingTime" required>
                 <div>
                     <label>Schwierigkeitsgrad:</label>
                     <div class="difficulty-container">
