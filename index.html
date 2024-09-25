@@ -104,7 +104,41 @@
 
         .ingredient,
         .step {
+            position: relative;
             margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .remove-step-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .remove-step-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .remove-ingredient-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .remove-ingredient-btn:hover {
+            background-color: #d32f2f;
         }
 
         .sql-output {
@@ -160,6 +194,7 @@
     <script>
         let selectedDifficulty = '';
         let baking = false;
+        let stepCounter = 0;
 
         function setDifficulty(level) {
             selectedDifficulty = level;
@@ -214,15 +249,15 @@
             const stepRows = document.getElementsByClassName('step');
             for (let sRow of stepRows) {
                 const description = sRow.querySelector('.step-description').value;
-                const ingredientRow = document.getElementsByClassName('ingredient-fields');
+
+                const ingredientRow = sRow.getElementsByClassName('ingredient-fields');
                 let ingredientsInserts = [];
                 for (let iRow of ingredientRow){
                     const ingredientName = iRow.querySelector('.ingredient-name').value;
                     const ingredientsAmount = iRow.querySelector('.ingredient-amount').value;
-                    ingredientsInserts.push(`{'name':'${ingredientName}', 'amount':'${ingredientsAmount}'}`);
+                    ingredientsInserts.push(`{"name":"${ingredientName}", "amount":"${ingredientsAmount}"}`);
                 }
-                const ingredientsInsertsJSON = JSON.stringify(ingredientsInserts);
-                stepInserts.push(`(@recipe_id, ${stepInserts.length + 1}, '${description}', '${ingredientsInsertsJSON}')`);
+                stepInserts.push(`(@recipe_id, ${stepInserts.length + 1}, '${description}', '[${ingredientsInserts}]')`);
             }
 
             const sqlCommands = `
@@ -260,9 +295,9 @@ ${stepInserts.join(', ')};`;
                     <label><input type="checkbox" class="ingredient-diet-checkbox" value="Keto" checked> Keto</label>
                     <label><input type="checkbox" class="ingredient-diet-checkbox" value="Zuckerarm" checked> Zuckerarm</label>
                 </div>
-                <button type="button" class="remove-ingredient">Zutat entfernen</button>
+                <button type="button" class="remove-ingredient-btn">Zutat entfernen</button>
             `;
-            ingredientDiv.querySelector('.remove-ingredient').addEventListener('click', function() {
+            ingredientDiv.querySelector('.remove-ingredient-btn').addEventListener('click', function() {
                 ingredientDiv.remove();
             });
             
@@ -286,18 +321,20 @@ ${stepInserts.join(', ')};`;
 
         // Funktion zum Hinzufügen eines neuen Schrittes
         function addNewStep() {
+            stepCounter++;
+
             const stepContainer = document.createElement('div');
             stepContainer.className = 'step';
 
             stepContainer.innerHTML = `
+        <h3>Schritt</h3>
         <label for="stepDescription">Schrittbeschreibung:</label>
         <input type="text" class="step-description" placeholder="Beschreibung" required>
 
-        <h4>Zutaten für diesen Schritt</h4>
         <div class="ingredient-fields">
             <input type="text" class="ingredient-name" placeholder="Zutat" required>
             <input type="text" class="ingredient-amount" placeholder="Menge" required>
-            <button type="button" class="remove-ingredient">Entfernen</button>
+            <button type="button" class="remove-ingredient-btn">Entfernen</button>
         </div>
         <button type="button" class="add-ingredient">Zutat hinzufügen</button>
     `;
@@ -311,9 +348,12 @@ ${stepInserts.join(', ')};`;
             // Event Listener für das Entfernen des Schrittes
             const removeStepButton = document.createElement('button');
             removeStepButton.type = 'button';
+            removeStepButton.className = 'remove-step-btn';
             removeStepButton.textContent = 'Schritt entfernen';
             removeStepButton.addEventListener('click', function () {
                 stepContainer.remove();
+                stepCounter--;
+                updateStepNumbers();
             });
             stepContainer.appendChild(removeStepButton);
         }
@@ -326,16 +366,25 @@ ${stepInserts.join(', ')};`;
                 ingredientFields.innerHTML = `
             <input type="text" class="ingredient-name" placeholder="Zutat" required>
             <input type="text" class="ingredient-amount" placeholder="Menge" required>
-            <button type="button" class="remove-ingredient">Entfernen</button>
+            <button type="button" class="remove-ingredient-btn">Entfernen</button>
         `;
                 stepContainer.appendChild(ingredientFields);
 
                 // Event Listener für das Entfernen der Zutat
-                ingredientFields.querySelector('.remove-ingredient').addEventListener('click', function () {
+                ingredientFields.querySelector('.remove-ingredient-btn').addEventListener('click', function () {
                     ingredientFields.remove();
                 });
             });
         }
+
+        // Funktion zur Aktualisierung der Schrittnummern
+        function updateStepNumbers() {
+        const steps = document.querySelectorAll('.step'); // Alle Schritte
+        steps.forEach((step, index) => {
+            const stepHeader = step.querySelector('h3'); // Finde die Schrittüberschrift
+            stepHeader.textContent = `Schritt ${index + 1}:`; // Setze die neue Schrittnummer
+        });
+    }
 
     </script>
 </head>
@@ -392,22 +441,23 @@ ${stepInserts.join(', ')};`;
                         <button type="button" onclick="addIngredient()">Zutat hinzufügen</button>
 
                         <div class="steps-container">
-                            <h3>Schritte</h3>
                             <div class="step">
+                                <h3>Schritt</h3>
+                                <br>
                                 <label for="stepDescription">Schrittbeschreibung:</label>
                                 <input type="text" class="step-description" name="stepDescription" required>
 
-                                <h4>Zutaten für diesen Schritt</h4>
                                 <div class="ingredient-fields">
                                     <input type="text" class="ingredient-name" placeholder="Zutat" required>
                                     <input type="text" class="ingredient-amount" placeholder="Menge" required>
-                                    <button type="button" class="remove-ingredient">Entfernen</button>
+                                    <button type="button" class="remove-ingredient-btn">Entfernen</button>
                                 </div>
                                 <button type="button" class="add-ingredient">Zutat hinzufügen</button>
                             </div>
-                            <button type="button" class="add-step">Schritt hinzufügen</button>
+                            
                         </div>
-
+                        <button type="button" class="add-step">Schritt hinzufügen</button>
+                        <div>
                         <button id="createSQL" class="create-sql-button" onclick="generateSQL()">SQL erstellen</button>
                     </form>
 
