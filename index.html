@@ -220,7 +220,8 @@
                 for (let iRow of ingredientRow){
                     const ingredientName = iRow.querySelector('.ingredient-name').value;
                     const ingredientsAmount = iRow.querySelector('.ingredient-amount').value;
-                    ingredientsInserts.push(`{"name":"${ingredientName}", "amount":"${ingredientsAmount}"}`);
+                    const ingredientUnit = iRow.querySelector('.ingredient-unit').value;
+                    ingredientsInserts.push(`{"name":"${ingredientName}", "amount":"${ingredientsAmount}", "unit":"${ingredientUnit}"}`);
                 }
                 stepInserts.push(`(@recipe_id, ${stepInserts.length + 1}, '${description}', '[${ingredientsInserts}]')`);
             }
@@ -299,6 +300,7 @@ ${stepInserts.join(', ')};`;
         <div class="ingredient-fields">
             <input type="text" class="ingredient-name" placeholder="Zutat" required>
             <input type="number" class="ingredient-amount" placeholder="Menge" required>
+            <input type="text" class="ingredient-unit" placeholder="Einheit" required>
             <button type="button" class="remove-ingredient-btn">Entfernen</button>
         </div>
         <button type="button" class="add-ingredient">Zutat hinzufügen</button>
@@ -331,6 +333,7 @@ ${stepInserts.join(', ')};`;
                 ingredientFields.innerHTML = `
             <input type="text" class="ingredient-name" placeholder="Zutat" required>
             <input type="number" class="ingredient-amount" placeholder="Menge" required>
+            <input type="text" class="ingredient-unit" placeholder="Einheit" required>
             <button type="button" class="remove-ingredient-btn">Entfernen</button>
         `;
                 stepContainer.appendChild(ingredientFields);
@@ -392,13 +395,15 @@ ${stepInserts.join(', ')};`;
                         <input type="text" id="imageUrl" required>
 
                         <div class="checkbox-container">
-                            <label><input type="checkbox" class="category-checkbox" value="Vorspeise"> Vorspeise</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Vorspeise">Vorspeise</label>
                             <label><input type="checkbox" class="category-checkbox" value="Hauptspeise">Hauptspeise</label>
-                            <label><input type="checkbox" class="category-checkbox" value="Dessert"> Dessert</label>
-                            <label><input type="checkbox" class="category-checkbox" value="Frühstück"> Frühstück</label>
-                            <label><input type="checkbox" class="category-checkbox" value="Snacks"> Snacks</label>
-                            <label><input type="checkbox" class="category-checkbox" value="Gebäck"> Gebäck</label>
-                            <label><input type="checkbox" class="category-checkbox" value="Getränke"> Getränke</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Dessert">Dessert</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Frühstück">Frühstück</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Snacks">Snacks</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Gebäck">Gebäck</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Beilagen">Beilagen</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Saucen/Dips">Saucen/Dips</label>
+                            <label><input type="checkbox" class="category-checkbox" value="Getränke">Getränke</label>
                         </div>
 
                         <h2>Zutaten</h2>
@@ -415,6 +420,7 @@ ${stepInserts.join(', ')};`;
                                 <div class="ingredient-fields">
                                     <input type="text" class="ingredient-name" placeholder="Zutat" required>
                                     <input type="number" class="ingredient-amount" placeholder="Menge" required>
+                                    <input type="text" class="ingredient-unit" placeholder="Einheit" required>
                                     <button type="button" class="remove-ingredient-btn">Entfernen</button>
                                 </div>
                                 <button type="button" class="add-ingredient">Zutat hinzufügen</button>
