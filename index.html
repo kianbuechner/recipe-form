@@ -227,7 +227,7 @@
             }
 
             const sqlCommands = `
-INSERT INTO recipes (title, portions, difficulty, utensils, imageUrl, category, workingTime, cookingTime, author, restingTime) VALUES ('${title}', ${portions}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}', ${workingTime}, ${cookingTime}, '${author}', ${workingTime});
+INSERT INTO recipes (title, portions, difficulty, utensils, imageUrl, category, workingTime, cookingTime, author, restingTime) VALUES ('${title}', ${portions}, '${difficulty}', '${utensils}', '${imageUrl}', '${categoryJSON}', ${workingTime}, ${cookingTime}, '${author}', ${restingTime});
 SET @recipe_id = (SELECT id FROM recipes WHERE title='${title}');
 
 INSERT INTO ingredients (name, diet) VALUES ${ingredientInserts.join(', ')}
