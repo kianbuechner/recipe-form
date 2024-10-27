@@ -251,7 +251,7 @@ ${stepInserts.join(', ')};`;
                 <label>Zutat:</label>
                 <input type="text" class="ingredient-name" placeholder="Name" required>
                 <input type="text" class="ingredient-unit" placeholder="Einheit (z.B. g)" required>
-                <input type="number" class="ingredient-quantity" placeholder="Menge" required>
+                <input type="number" class="ingredient-quantity" placeholder="Menge" step=".25" required>
                 <div class="checkbox-container">
                     <label><input type="checkbox" class="ingredient-diet-checkbox" value="Vegan" checked> Vegan</label>
                     <label><input type="checkbox" class="ingredient-diet-checkbox" value="Vegetarisch" checked> Vegetarisch</label>
@@ -299,7 +299,7 @@ ${stepInserts.join(', ')};`;
 
         <div class="ingredient-fields">
             <input type="text" class="ingredient-name" placeholder="Zutat" required>
-            <input type="number" class="ingredient-amount" placeholder="Menge" required>
+            <input type="number" class="ingredient-amount" placeholder="Menge" step=".25" required>
             <input type="text" class="ingredient-unit" placeholder="Einheit" required>
             <button type="button" class="remove-ingredient-btn">Entfernen</button>
         </div>
@@ -332,7 +332,7 @@ ${stepInserts.join(', ')};`;
                 ingredientFields.className = 'ingredient-fields';
                 ingredientFields.innerHTML = `
             <input type="text" class="ingredient-name" placeholder="Zutat" required>
-            <input type="number" class="ingredient-amount" placeholder="Menge" required>
+            <input type="number" class="ingredient-amount" placeholder="Menge" step=".25" required>
             <input type="text" class="ingredient-unit" placeholder="Einheit" required>
             <button type="button" class="remove-ingredient-btn">Entfernen</button>
         `;
@@ -419,7 +419,7 @@ ${stepInserts.join(', ')};`;
 
                                 <div class="ingredient-fields">
                                     <input type="text" class="ingredient-name" placeholder="Zutat" required>
-                                    <input type="number" class="ingredient-amount" placeholder="Menge" required>
+                                    <input type="number" class="ingredient-amount" placeholder="Menge" step=".25" required>
                                     <input type="text" class="ingredient-unit" placeholder="Einheit" required>
                                     <button type="button" class="remove-ingredient-btn">Entfernen</button>
                                 </div>
